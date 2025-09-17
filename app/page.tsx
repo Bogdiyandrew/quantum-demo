@@ -196,7 +196,7 @@ export default function Home() {
 
           <motion.div variants={itemVariants} className="mt-8 flex flex-wrap justify-center gap-4 lg:justify-start">
             <Link
-              href="/get-started"
+              href="https://digitura.ro"
               className="group relative inline-flex items-center justify-center rounded-xl px-7 py-3 font-semibold text-black transition-transform"
             >
               <span
@@ -210,7 +210,7 @@ export default function Home() {
             </Link>
 
             <Link
-              href="/demo"
+              href="https://digitura.ro"
               className="group relative inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-7 py-3 font-semibold text-white backdrop-blur transition-colors hover:bg-white/10"
             >
               <button ref={secondaryBtnRef} className="relative z-10 inline-flex items-center gap-2">
@@ -372,7 +372,7 @@ export default function Home() {
               <li className="flex items-center gap-3">✔️ Analytics de bază</li>
             </ul>
             <Link
-              href="/get-started"
+              href="https://digitura.ro"
               className="mt-8 block w-full rounded-lg bg-white/10 px-6 py-3 text-center font-semibold text-white transition-colors hover:bg-white/20"
             >
               Start for Free
@@ -426,7 +426,7 @@ export default function Home() {
               <li className="flex items-center gap-3">✔️ Priority support</li>
             </ul>
             <Link
-              href="/get-started-pro"
+              href="https://digitura.ro"
               className="mt-8 block w-full rounded-lg bg-[var(--primary-accent)] px-6 py-3 text-center font-semibold text-black transition-transform hover:scale-[1.02]"
             >
               Choose Pro
@@ -501,7 +501,7 @@ export default function Home() {
             Alătură-te echipelor care ship-uiesc constant. Fără circ.
           </p>
           <Link
-            href="/get-started"
+            href="https://digitura.ro"
             className="mt-8 inline-block rounded-lg bg-white px-8 py-3 font-semibold text-black transition-transform hover:scale-[1.02]"
           >
             Start Your Free Trial
