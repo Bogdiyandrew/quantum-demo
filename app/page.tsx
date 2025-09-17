@@ -13,8 +13,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 /* =========================
-   Variants
-   ========================= */
+   Variants
+   ========================= */
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -26,8 +26,16 @@ const itemVariants: Variants = {
 };
 
 /* =========================
-   Helpers & Hooks
-   ========================= */
+   Helpers & Hooks
+   ========================= */
+
+// Interfață pentru a include metodele legacy addListener/removeListener
+// care nu mai sunt în tipurile standard pentru MediaQueryList.
+interface MediaQueryListWithLegacy extends MediaQueryList {
+  addListener: (callback: (event: MediaQueryListEvent) => void) => void;
+  removeListener: (callback: (event: MediaQueryListEvent) => void) => void;
+}
+
 function usePrefersReducedMotion() {
   // unele versiuni de framer pot returna boolean | null -> normalizăm
   const reducedFM = useReducedMotion();
@@ -53,9 +61,9 @@ function usePrefersReducedMotion() {
     }
 
     // Legacy Safari
-    if ("addListener" in mq && typeof (mq as any).addListener === "function") {
-      (mq as any).addListener(update);
-      return () => (mq as any).removeListener(update);
+    if ("addListener" in mq && typeof (mq as MediaQueryListWithLegacy).addListener === "function") {
+      (mq as MediaQueryListWithLegacy).addListener(update);
+      return () => (mq as MediaQueryListWithLegacy).removeListener(update);
     }
 
     // Fallback no-op cleanup
@@ -153,8 +161,8 @@ function ScrollProgress() {
 }
 
 /* =========================
-   Transitions
-   ========================= */
+   Transitions
+   ========================= */
 const SPRING: Transition = {
   type: "spring",
   stiffness: 400,
@@ -163,14 +171,14 @@ const SPRING: Transition = {
 } as const;
 
 /* =========================
-   Price utils
-   ========================= */
+   Price utils
+   ========================= */
 const MONTHLY_PRICE = 29;
 const YEARLY_PER_USER = Math.round(MONTHLY_PRICE * 12 * 0.8); // 20% off
 
 /* =========================
-   Page
-   ========================= */
+   Page
+   ========================= */
 export default function Page() {
   const reduced = usePrefersReducedMotion();
   const [isYearly, setIsYearly] = useState(false);
