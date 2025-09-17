@@ -1,26 +1,178 @@
+/* Tailwind v4 */
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+/* =========================================================
+   1) Design tokens (Emerald Tech) + font
+   ========================================================= */
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0B1215;
+    --foreground: #EAF0F2;
+    --primary-accent: #00F5B9; /* poți ajusta nuanța global */
+    --secondary-accent: #374151;
+    --font-sans: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* =========================================================
+   2) Bază: body, heading, link-uri
+   ========================================================= */
+@layer base {
+  html, body {
+    height: 100%;
+  }
+
+  /* Smooth scroll global (cu fallback în media query) */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: #fff;
+    font-weight: 700;
+  }
+
+  a, button {
+    cursor: pointer; /* lăsăm cursor-ul normal by default */
+  }
+
+  /* Dacă vrei musai cursor invizibil (ex: vei monta un cursor custom în React),
+     pune clasa .use-custom-cursor pe <body> sau <html> */
+  .use-custom-cursor, .use-custom-cursor a, .use-custom-cursor button {
+    cursor: none !important;
+  }
+}
+
+/* =========================================================
+   3) Background global: noise + aurora + grid
+   (se folosesc în page.tsx via clasele .bg-noise, .aurora, .hero-grid-background)
+   ========================================================= */
+
+/* Noise subtil, fără imagini externe */
+@layer utilities {
+  .bg-noise {
+    background-image: radial-gradient(#ffffff0a 1px, transparent 1px);
+    background-size: 3px 3px;
+  }
+}
+
+/* Grid discret cu mask (folosit în Hero) */
+@layer utilities {
+  .hero-grid-background {
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 36px 36px;
+    /* mascăm grila ca să fie mai intensă central și să se piardă spre margini */
+    -webkit-mask-image: radial-gradient(ellipse at 50% 20%, black 40%, transparent 70%);
+            mask-image: radial-gradient(ellipse at 50% 20%, black 40%, transparent 70%);
+  }
+}
+
+/* Aurora / Nebula layer (animată) */
+@layer utilities {
+  .aurora {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .aurora::before,
+  .aurora::after {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background: conic-gradient(
+      from 180deg at 50% 50%,
+      rgba(16, 242, 164, 0.28),
+      rgba(16, 242, 164, 0) 40%,
+      rgba(52, 211, 153, 0.28),
+      rgba(59, 130, 246, 0.22),
+      rgba(16, 242, 164, 0.28)
+    );
+    filter: blur(80px);
+    animation: aurora-rotate 18s linear infinite;
+    opacity: .8;
+    mix-blend-mode: screen;
+  }
+  .aurora::after {
+    animation-duration: 26s;
+    transform: scale(1.2);
+    opacity: .6;
+  }
+
+  @keyframes aurora-rotate {
+    0%   { transform: rotate(0deg) translateY(0); }
+    50%  { transform: rotate(180deg) translateY(-2%); }
+    100% { transform: rotate(360deg) translateY(0); }
+  }
+}
+
+/* =========================================================
+   4) Fundal radial subtil (compatibil cu ce aveai inițial)
+   – mutat în spate, fără să blocheze click-urile
+   ========================================================= */
+@layer base {
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at top right, rgba(0, 245, 185, 0.10) 0%, transparent 35%),
+      radial-gradient(circle at bottom left, rgba(55, 65, 81, 0.15) 0%, transparent 40%);
+    z-index: -2;
+    pointer-events: none;
+  }
+}
+
+/* =========================================================
+   5) Accesibilitate: respectă preferințele de reducere a mișcării
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  /* Taie animația aurora */
+  .aurora::before,
+  .aurora::after {
+    animation: none !important;
+  }
+
+  /* Dezactivează smooth-scroll și încetinește tranzițiile */
+  * {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =========================================================
+   6) Utilitare mici de finisaj (opțional, dar utile)
+   ========================================================= */
+
+/* Linie de separare subtilă când vrei delimita panouri */
+@layer utilities {
+  .hairline {
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+  }
+}
+
+/* Ring discret pentru carduri translucide */
+@layer utilities {
+  .glass-ring {
+    position: relative;
+  }
+  .glass-ring::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  }
 }
