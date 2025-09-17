@@ -153,6 +153,37 @@ export default function Home() {
   const primaryBtnRef = useMagnetic(14);
   const secondaryBtnRef = useMagnetic(20);
 
+  // === NOU: Lista de testimoniale ===
+  const testimonials = [
+    {
+      quote: "“Quantum ne-a tăiat noise-ul, a păstrat esențialul și ne-a dat timp înapoi. Predictive-ul chiar funcționează.”",
+      author: "Sarah J., Product Manager @ Nova",
+    },
+    {
+      quote: "“Am trecut de la haos la un flux de lucru clar în mai puțin de o săptămână. Viteza de execuție a echipei a crescut cu 30%.”",
+      author: "Andrei P., Head of Engineering @ Bolt",
+    },
+    {
+      quote: "“Funcționalitatea de estimare a deadline-urilor este incredibil de precisă. Ne ajută să setăm așteptări realiste cu clienții.”",
+      author: "Elena D., Product Owner @ Lumen",
+    },
+    {
+      quote: "“Cel mai mare câștig pentru noi este claritatea. Toată lumea știe exact ce are de făcut, fără zeci de meetinguri inutile.”",
+      author: "Mihai S., Team Lead @ Atlas",
+    },
+    {
+      quote: "“Platforma este intuitivă și surprinzător de puternică. Am reușit să o adoptăm în toată compania fără training extensiv.”",
+      author: "Cristina V., COO @ Synergy",
+    },
+    {
+      quote: "“Quantum nu este doar un tool, este un partener strategic. Ne-a permis să ne concentrăm pe inovație, nu pe administrarea task-urilor.”",
+      author: "Dan Ionescu, Founder @ InnovateFast",
+    },
+  ];
+
+  // Duplicăm lista pentru un efect de loop fluid
+  const duplicatedTestimonials = [...testimonials, ...testimonials];
+
   return (
     <main className="relative overflow-x-clip">
       <ScrollProgress />
@@ -221,7 +252,6 @@ export default function Home() {
             </Link>
           </motion.div>
 
-          {/* Logo row placeholder */}
           <motion.div variants={itemVariants} className="mt-10 grid w-full max-w-xl grid-cols-4 items-center justify-items-center gap-6 opacity-80">
             {["bolt", "nova", "lumen", "atlas"].map((brand) => (
               <div key={brand} className="text-sm text-gray-500">• {brand}</div>
@@ -452,7 +482,7 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* === TESTIMONIALS === */}
+      {/* === TESTIMONIALS (MODIFICAT) === */}
       <section id="testimonials" className="container mx-auto px-6 pb-24">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -471,16 +501,15 @@ export default function Home() {
             aria-hidden
             initial={{ x: 0 }}
             animate={{ x: ["0%", "-50%"] }}
-            transition={{ repeat: Infinity, duration: 22, ease: "linear" }}
+            transition={{ repeat: Infinity, duration: 45, ease: "linear" }}
             className="flex min-w-max gap-6 p-6"
           >
-            {Array.from({ length: 10 }).map((_, i) => (
+            {duplicatedTestimonials.map((testimonial, i) => (
               <div key={i} className="w-[520px] shrink-0 rounded-xl border border-white/10 bg-black/30 p-6">
                 <p className="text-lg text-gray-200">
-                  “Quantum ne-a tăiat noise-ul, a păstrat esențialul și ne-a dat timp
-                  înapoi. Predictive-ul chiar funcționează.”
+                  {testimonial.quote}
                 </p>
-                <div className="mt-4 text-sm text-gray-400">— {i % 2 ? "Mark T., CEO" : "Sarah J., PM"}</div>
+                <div className="mt-4 text-sm text-gray-400">— {testimonial.author}</div>
               </div>
             ))}
           </motion.div>
