@@ -1,8 +1,15 @@
 "use client";
 
-import { motion, Variants, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
-import type { Transition } from "framer-motion";
 import Link from "next/link";
+import {
+  motion,
+  Variants,
+  useMotionValue,
+  useTransform,
+  AnimatePresence,
+  useReducedMotion,
+  type Transition,
+} from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 /* =========================
@@ -22,21 +29,45 @@ const itemVariants: Variants = {
    Helpers & Hooks
    ========================= */
 function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(false);
+  // unele versiuni de framer pot returna boolean | null -> normalizăm
+  const reducedFM = useReducedMotion();
+  const initial = (reducedFM ?? false) as boolean;
+  const [reduced, setReduced] = useState<boolean>(initial);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReduced(mq.matches);
+
+    const update = () => {
+      // mq.matches e boolean; reducedFM poate fi null -> coerționăm
+      setReduced(Boolean(mq.matches || reducedFM));
+    };
+
     update();
-    mq.addEventListener?.("change", update);
-    return () => mq.removeEventListener?.("change", update);
-  }, []);
+
+    // Modern browsers
+    if ("addEventListener" in mq && typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", update);
+      return () => mq.removeEventListener("change", update);
+    }
+
+    // Legacy Safari
+    if ("addListener" in mq && typeof (mq as any).addListener === "function") {
+      (mq as any).addListener(update);
+      return () => (mq as any).removeListener(update);
+    }
+
+    // Fallback no-op cleanup
+    return () => {};
+  }, [reducedFM]);
+
   return reduced;
 }
 
-// Magnetic hover for buttons
+// Magnetic hover cu CSS vars (nu suprascrie transform)
 function useMagnetic(strength = 18) {
-  const ref = useRef<HTMLButtonElement | null>(null);
+  const ref = useRef<HTMLElement | null>(null);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -44,10 +75,12 @@ function useMagnetic(strength = 18) {
       const rect = el.getBoundingClientRect();
       const x = e.clientX - (rect.left + rect.width / 2);
       const y = e.clientY - (rect.top + rect.height / 2);
-      el.style.transform = `translate(${x / strength}px, ${y / strength}px)`;
+      el.style.setProperty("--mx", `${x / strength}px`);
+      el.style.setProperty("--my", `${y / strength}px`);
     };
     const onLeave = () => {
-      el.style.transform = "translate(0,0)";
+      el.style.setProperty("--mx", `0px`);
+      el.style.setProperty("--my", `0px`);
     };
     el.addEventListener("mousemove", onMove);
     el.addEventListener("mouseleave", onLeave);
@@ -90,14 +123,20 @@ function Tilt3D({
   );
 }
 
-// Scroll progress bar
+// Scroll progress bar (cu rAF ca să evităm jank)
 function ScrollProgress() {
   const progress = useMotionValue(0);
   useEffect(() => {
+    let ticking = false;
     const onScroll = () => {
-      const h = document.documentElement;
-      const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight || 1);
-      progress.set(scrolled);
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const h = document.documentElement;
+        const scrolled = h.scrollTop / ((h.scrollHeight - h.clientHeight) || 1);
+        progress.set(scrolled);
+        ticking = false;
+      });
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -114,14 +153,14 @@ function ScrollProgress() {
 }
 
 /* =========================
-   Transitions (tipate corect)
+   Transitions
    ========================= */
 const SPRING: Transition = {
   type: "spring",
   stiffness: 400,
   damping: 40,
   mass: 0.7,
-};
+} as const;
 
 /* =========================
    Price utils
@@ -132,7 +171,7 @@ const YEARLY_PER_USER = Math.round(MONTHLY_PRICE * 12 * 0.8); // 20% off
 /* =========================
    Page
    ========================= */
-export default function Home() {
+export default function Page() {
   const reduced = usePrefersReducedMotion();
   const [isYearly, setIsYearly] = useState(false);
 
@@ -150,42 +189,56 @@ export default function Home() {
     mouseY.set((event.clientY - top) / height - 0.5);
   };
 
-  const primaryBtnRef = useMagnetic(14);
-  const secondaryBtnRef = useMagnetic(20);
+  const primaryMagRef = useMagnetic(14);
+  const secondaryMagRef = useMagnetic(20);
 
-  // === NOU: Lista de testimoniale ===
+  // Testimonials
   const testimonials = [
     {
-      quote: "“Quantum ne-a tăiat noise-ul, a păstrat esențialul și ne-a dat timp înapoi. Predictive-ul chiar funcționează.”",
+      quote:
+        "“Quantum ne-a tăiat noise-ul, a păstrat esențialul și ne-a dat timp înapoi. Predictive-ul chiar funcționează.”",
       author: "Sarah J., Product Manager @ Nova",
     },
     {
-      quote: "“Am trecut de la haos la un flux de lucru clar în mai puțin de o săptămână. Viteza de execuție a echipei a crescut cu 30%.”",
+      quote:
+        "“Am trecut de la haos la un flux de lucru clar în mai puțin de o săptămână. Viteza de execuție a echipei a crescut cu 30%.”",
       author: "Andrei P., Head of Engineering @ Bolt",
     },
     {
-      quote: "“Funcționalitatea de estimare a deadline-urilor este incredibil de precisă. Ne ajută să setăm așteptări realiste cu clienții.”",
+      quote:
+        "“Funcționalitatea de estimare a deadline-urilor este incredibil de precisă. Ne ajută să setăm așteptări realiste cu clienții.”",
       author: "Elena D., Product Owner @ Lumen",
     },
     {
-      quote: "“Cel mai mare câștig pentru noi este claritatea. Toată lumea știe exact ce are de făcut, fără zeci de meetinguri inutile.”",
+      quote:
+        "“Cel mai mare câștig pentru noi este claritatea. Toată lumea știe exact ce are de făcut, fără zeci de meetinguri inutile.”",
       author: "Mihai S., Team Lead @ Atlas",
     },
     {
-      quote: "“Platforma este intuitivă și surprinzător de puternică. Am reușit să o adoptăm în toată compania fără training extensiv.”",
+      quote:
+        "“Platforma este intuitivă și surprinzător de puternică. Am reușit să o adoptăm în toată compania fără training extensiv.”",
       author: "Cristina V., COO @ Synergy",
     },
     {
-      quote: "“Quantum nu este doar un tool, este un partener strategic. Ne-a permis să ne concentrăm pe inovație, nu pe administrarea task-urilor.”",
+      quote:
+        "“Quantum nu este doar un tool, este un partener strategic. Ne-a permis să ne concentrăm pe inovație, nu pe administrarea task-urilor.”",
       author: "Dan Ionescu, Founder @ InnovateFast",
     },
   ];
-
-  // Duplicăm lista pentru un efect de loop fluid
   const duplicatedTestimonials = [...testimonials, ...testimonials];
 
   return (
     <main className="relative overflow-x-clip">
+      {/* CSS local pentru magnetic */}
+      <style jsx global>{`
+        .magnetic {
+          --mx: 0px;
+          --my: 0px;
+          transform: translate(var(--mx), var(--my));
+          will-change: transform;
+        }
+      `}</style>
+
       <ScrollProgress />
 
       {/* Backgrounds */}
@@ -208,8 +261,8 @@ export default function Home() {
 
         <motion.div
           variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+          initial={reduced ? undefined : "hidden"}
+          animate={reduced ? undefined : "visible"}
           className="relative z-10 flex flex-col items-center text-center lg:items-start lg:text-left"
         >
           <motion.h1 variants={itemVariants} className="text-balance text-5xl font-semibold tracking-tight md:text-7xl">
@@ -221,40 +274,47 @@ export default function Home() {
           </motion.h1>
 
           <motion.p variants={itemVariants} className="mt-6 max-w-xl text-lg text-gray-400">
-            Quantum este o platformă de project management cu AI care automatizează
-            workflow-ul, estimează realist termenele și îți ține echipa sincronizată fără zgomot.
+            Quantum este o platformă de project management cu AI care automatizează workflow-ul, estimează realist
+            termenele și îți ține echipa sincronizată fără zgomot.
           </motion.p>
 
           <motion.div variants={itemVariants} className="mt-8 flex flex-wrap justify-center gap-4 lg:justify-start">
             <Link
               href="https://digitura.ro"
               className="group relative inline-flex items-center justify-center rounded-xl px-7 py-3 font-semibold text-black transition-transform"
+              aria-label="Get Started for Free"
             >
               <span
                 className="absolute inset-0 rounded-xl bg-[var(--primary-accent)] transition-transform duration-300 group-hover:scale-[1.03]"
                 aria-hidden
               />
               <span className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-t from-black/10 to-white/20 opacity-0 mix-blend-overlay transition-opacity duration-300 group-hover:opacity-100" />
-              <button ref={primaryBtnRef} className="relative z-10">
+              <span ref={primaryMagRef} className="magnetic relative z-10">
                 Get Started for Free
-              </button>
+              </span>
             </Link>
 
             <Link
               href="https://digitura.ro"
               className="group relative inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-7 py-3 font-semibold text-white backdrop-blur transition-colors hover:bg-white/10"
+              aria-label="Request a Demo"
             >
-              <button ref={secondaryBtnRef} className="relative z-10 inline-flex items-center gap-2">
+              <span ref={secondaryMagRef} className="magnetic relative z-10 inline-flex items-center gap-2">
                 <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
                 Request a Demo
-              </button>
-              <span className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10" />
+              </span>
+              <span className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10" aria-hidden />
             </Link>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="mt-10 grid w-full max-w-xl grid-cols-4 items-center justify-items-center gap-6 opacity-80">
+          <motion.div
+            variants={itemVariants}
+            className="mt-10 grid w-full max-w-xl grid-cols-4 items-center justify-items-center gap-6 opacity-80"
+          >
             {["bolt", "nova", "lumen", "atlas"].map((brand) => (
-              <div key={brand} className="text-sm text-gray-500">• {brand}</div>
+              <div key={brand} className="text-sm text-gray-500">
+                • {brand}
+              </div>
             ))}
           </motion.div>
         </motion.div>
@@ -263,8 +323,8 @@ export default function Home() {
         <motion.div
           className="relative z-10 hidden lg:block"
           style={reduced ? {} : { rotateX, rotateY, transformStyle: "preserve-3d" }}
-          initial="hidden"
-          animate="visible"
+          initial={reduced ? undefined : "hidden"}
+          animate={reduced ? undefined : "visible"}
           variants={containerVariants}
         >
           <div className="relative grid w-[560px] grid-cols-2 grid-rows-2 gap-4">
@@ -279,12 +339,14 @@ export default function Home() {
                   <motion.div
                     key={i}
                     initial={{ height: 0 }}
-                    whileInView={{ height: `${h}%` }}
+                    whileInView={reduced ? { height: `${h}%` } : { height: `${h}%` }}
                     viewport={{ once: true, amount: 0.6 }}
                     transition={{ ...SPRING, delay: 0.15 * i }}
-                    className={`w-1/4 rounded-md ${i === 3
-                      ? "bg-gradient-to-t from-[var(--primary-accent)]/50 to-[var(--primary-accent)]"
-                      : "bg-gradient-to-t from-blue-500/50 to-blue-500"}`}
+                    className={`w-1/4 rounded-md ${
+                      i === 3
+                        ? "bg-gradient-to-t from-[var(--primary-accent)]/50 to-[var(--primary-accent)]"
+                        : "bg-gradient-to-t from-blue-500/50 to-blue-500"
+                    }`}
                   />
                 ))}
                 <div className="pointer-events-none absolute right-2 top-2 rounded-md bg-emerald-500/20 px-2 py-1 text-[11px] text-emerald-200">
@@ -328,7 +390,7 @@ export default function Home() {
       </section>
 
       {/* === BENEFITS === */}
-      <section className="container mx-auto px-6 py-10">
+      <section id="features" className="container mx-auto px-6 py-10">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {[
             { t: "Predictive, nu intuitiv", d: "Estimări bazate pe date reale. Mai puține surprize, mai multe livrări." },
@@ -337,10 +399,10 @@ export default function Home() {
           ].map((b, i) => (
             <Tilt3D key={i} intensity={6} className="w-full">
               <motion.div
-                initial={{ opacity: 0, y: 14 }}
+                initial={reduced ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: i * 0.05 }}
+                transition={reduced ? { duration: 0 } : { duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: i * 0.05 }}
                 className="relative h-full rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md"
               >
                 <div className="mb-3 text-sm text-emerald-300/90">0{i + 1}</div>
@@ -356,22 +418,24 @@ export default function Home() {
       {/* === PRICING === */}
       <section id="pricing" className="container mx-auto px-6 py-24">
         <motion.div
-          initial={{ opacity: 0, y: 28 }}
+          initial={reduced ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          transition={reduced ? { duration: 0 } : { duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="text-center"
         >
           <h2 className="text-4xl font-bold md:text-5xl">Simple, transparent pricing</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-400">
-            Alege ce are sens acum. Poți schimba oricând.
-          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-400">Alege ce are sens acum. Poți schimba oricând.</p>
 
           <div className="mt-8 flex items-center justify-center gap-4">
             <span className={`font-medium ${!isYearly ? "text-white" : "text-gray-500"}`}>Monthly</span>
             <button
               onClick={() => setIsYearly((v) => !v)}
-              className={`relative flex h-8 w-16 items-center rounded-full transition-colors ${isYearly ? "bg-[var(--primary-accent)]" : "bg-gray-700"}`}
+              className={`relative flex h-8 w-16 items-center rounded-full transition-colors ${
+                isYearly ? "bg-[var(--primary-accent)]" : "bg-gray-700"
+              }`}
+              aria-pressed={isYearly}
+              aria-label="Toggle yearly pricing"
             >
               <motion.span
                 layout
@@ -387,8 +451,9 @@ export default function Home() {
 
         <motion.div
           className="mt-14 grid grid-cols-1 items-stretch gap-8 md:grid-cols-2 lg:grid-cols-3"
-          initial="hidden"
-          whileInView="visible"
+          initial={reduced ? undefined : "hidden"}
+          // IMPORTANT: whileInView nu primește `false`; folosim `undefined` ca să-l dezactivăm.
+          whileInView={reduced ? undefined : "visible"}
           viewport={{ once: true, amount: 0.2 }}
           variants={containerVariants}
         >
@@ -482,33 +547,29 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* === TESTIMONIALS (MODIFICAT) === */}
+      {/* === TESTIMONIALS === */}
       <section id="testimonials" className="container mx-auto px-6 pb-24">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={reduced ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
+          transition={reduced ? { duration: 0 } : { duration: 0.6 }}
           className="text-center"
         >
-          <h2 className="text-4xl font-bold md:text-5xl">
-            Trusted by teams at the world&apos;s best companies
-          </h2>
+          <h2 className="text-4xl font-bold md:text-5xl">Trusted by teams at the world&apos;s best companies</h2>
         </motion.div>
 
         <div className="relative mt-12 overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-1 backdrop-blur">
           <motion.div
             aria-hidden
             initial={{ x: 0 }}
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ repeat: Infinity, duration: 45, ease: "linear" }}
+            animate={reduced ? { x: 0 } : { x: ["0%", "-50%"] }}
+            transition={reduced ? { duration: 0 } : { repeat: Infinity, duration: 45, ease: "linear" }}
             className="flex min-w-max gap-6 p-6"
           >
             {duplicatedTestimonials.map((testimonial, i) => (
               <div key={i} className="w-[520px] shrink-0 rounded-xl border border-white/10 bg-black/30 p-6">
-                <p className="text-lg text-gray-200">
-                  {testimonial.quote}
-                </p>
+                <p className="text-lg text-gray-200">{testimonial.quote}</p>
                 <div className="mt-4 text-sm text-gray-400">— {testimonial.author}</div>
               </div>
             ))}
@@ -519,10 +580,10 @@ export default function Home() {
       {/* === FINAL CTA === */}
       <section className="container mx-auto px-6 pb-28">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={reduced ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
+          transition={reduced ? { duration: 0 } : { duration: 0.6 }}
           className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[var(--primary-accent)] to-emerald-400 px-8 py-16 text-center"
         >
           <h2 className="text-4xl font-bold text-black">Ready to streamline your projects?</h2>

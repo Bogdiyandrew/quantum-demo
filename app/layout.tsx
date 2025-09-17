@@ -10,10 +10,15 @@ const inter = Inter({
   variable: '--font-sans',
 });
 
+// --- MODIFICARE AICI ---
 export const metadata: Metadata = {
   title: "Quantum - AI Project Management",
   description: "Organizează-ți proiectele la viteza viitorului.",
+  icons: {
+    icon: '/faviconlogo.png', // Calea către imaginea din folderul /public
+  },
 };
+// --- SFÂRȘIT MODIFICARE ---
 
 export default function RootLayout({
   children,
