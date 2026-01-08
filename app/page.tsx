@@ -13,8 +13,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 /* =========================
-   Variants
-   ========================= */
+   Variants
+   ========================= */
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -26,8 +26,8 @@ const itemVariants: Variants = {
 };
 
 /* =========================
-   Helpers & Hooks
-   ========================= */
+   Helpers & Hooks
+   ========================= */
 
 // Interfață pentru a include metodele legacy addListener/removeListener
 // care nu mai sunt în tipurile standard pentru MediaQueryList.
@@ -67,7 +67,7 @@ function usePrefersReducedMotion() {
     }
 
     // Fallback no-op cleanup
-    return () => {};
+    return () => { };
   }, [reducedFM]);
 
   return reduced;
@@ -161,8 +161,8 @@ function ScrollProgress() {
 }
 
 /* =========================
-   Transitions
-   ========================= */
+   Transitions
+   ========================= */
 const SPRING: Transition = {
   type: "spring",
   stiffness: 400,
@@ -171,14 +171,14 @@ const SPRING: Transition = {
 } as const;
 
 /* =========================
-   Price utils
-   ========================= */
+   Price utils
+   ========================= */
 const MONTHLY_PRICE = 29;
 const YEARLY_PER_USER = Math.round(MONTHLY_PRICE * 12 * 0.8); // 20% off
 
 /* =========================
-   Page
-   ========================= */
+   Page
+   ========================= */
 export default function Page() {
   const reduced = usePrefersReducedMotion();
   const [isYearly, setIsYearly] = useState(false);
@@ -290,7 +290,7 @@ export default function Page() {
             <Link
               href="https://digitura.ro"
               className="group relative inline-flex items-center justify-center rounded-xl px-7 py-3 font-semibold text-black transition-transform"
-              aria-label="Get Started for Free"
+              aria-label="Get started for free"
             >
               <span
                 className="absolute inset-0 rounded-xl bg-[var(--primary-accent)] transition-transform duration-300 group-hover:scale-[1.03]"
@@ -298,18 +298,18 @@ export default function Page() {
               />
               <span className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-t from-black/10 to-white/20 opacity-0 mix-blend-overlay transition-opacity duration-300 group-hover:opacity-100" />
               <span ref={primaryMagRef} className="magnetic relative z-10">
-                Get Started for Free
+                Get started for free
               </span>
             </Link>
 
             <Link
               href="https://digitura.ro"
               className="group relative inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-7 py-3 font-semibold text-white backdrop-blur transition-colors hover:bg-white/10"
-              aria-label="Request a Demo"
+              aria-label="Request a demo"
             >
               <span ref={secondaryMagRef} className="magnetic relative z-10 inline-flex items-center gap-2">
                 <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-                Request a Demo
+                Request a demo
               </span>
               <span className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10" aria-hidden />
             </Link>
@@ -350,11 +350,10 @@ export default function Page() {
                     whileInView={reduced ? { height: `${h}%` } : { height: `${h}%` }}
                     viewport={{ once: true, amount: 0.6 }}
                     transition={{ ...SPRING, delay: 0.15 * i }}
-                    className={`w-1/4 rounded-md ${
-                      i === 3
-                        ? "bg-gradient-to-t from-[var(--primary-accent)]/50 to-[var(--primary-accent)]"
-                        : "bg-gradient-to-t from-blue-500/50 to-blue-500"
-                    }`}
+                    className={`w-1/4 rounded-md ${i === 3
+                      ? "bg-gradient-to-t from-[var(--primary-accent)]/50 to-[var(--primary-accent)]"
+                      : "bg-gradient-to-t from-blue-500/50 to-blue-500"
+                      }`}
                   />
                 ))}
                 <div className="pointer-events-none absolute right-2 top-2 rounded-md bg-emerald-500/20 px-2 py-1 text-[11px] text-emerald-200">
@@ -439,9 +438,8 @@ export default function Page() {
             <span className={`font-medium ${!isYearly ? "text-white" : "text-gray-500"}`}>Monthly</span>
             <button
               onClick={() => setIsYearly((v) => !v)}
-              className={`relative flex h-8 w-16 items-center rounded-full transition-colors ${
-                isYearly ? "bg-[var(--primary-accent)]" : "bg-gray-700"
-              }`}
+              className={`relative flex h-8 w-16 items-center rounded-full transition-colors ${isYearly ? "bg-[var(--primary-accent)]" : "bg-gray-700"
+                }`}
               aria-pressed={isYearly}
               aria-label="Toggle yearly pricing"
             >
@@ -478,7 +476,7 @@ export default function Page() {
               href="https://digitura.ro"
               className="mt-8 block w-full rounded-lg bg-white/10 px-6 py-3 text-center font-semibold text-white transition-colors hover:bg-white/20"
             >
-              Start for Free
+              Start
             </Link>
           </motion.div>
 
@@ -532,7 +530,7 @@ export default function Page() {
               href="https://digitura.ro"
               className="mt-8 block w-full rounded-lg bg-[var(--primary-accent)] px-6 py-3 text-center font-semibold text-black transition-transform hover:scale-[1.02]"
             >
-              Choose Pro
+              Pro
             </Link>
           </motion.div>
 
@@ -549,7 +547,7 @@ export default function Page() {
               href="/contact"
               className="mt-8 block w-full rounded-lg bg-white/10 px-6 py-3 text-center font-semibold text-white transition-colors hover:bg-white/20"
             >
-              Contact Sales
+              Contact
             </Link>
           </motion.div>
         </motion.div>
@@ -602,7 +600,7 @@ export default function Page() {
             href="https://digitura.ro"
             className="mt-8 inline-block rounded-lg bg-white px-8 py-3 font-semibold text-black transition-transform hover:scale-[1.02]"
           >
-            Start Your Free Trial
+            Start your free trial
           </Link>
         </motion.div>
       </section>
